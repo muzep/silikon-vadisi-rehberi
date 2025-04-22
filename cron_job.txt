@@ -1,0 +1,8 @@
+# Her gün saat 10:00'da haberleri çek
+0 10 * * * cd /Users/suleymanpehlivan/Desktop/silikon_vadisi_rehberi && /opt/anaconda3/bin/python scripts/fetch_news.py
+
+# Her gün saat 11:00'da eğitim içeriği oluştur
+0 11 * * * cd /Users/suleymanpehlivan/Desktop/silikon_vadisi_rehberi && /opt/anaconda3/bin/python scripts/generate_education.py
+
+# Her 6 saatte bir çalıştır (alternatif seçenek)
+# 0 */6 * * * cd /Users/suleymanpehlivan/Desktop/silikon_vadisi_rehberi && /opt/anaconda3/bin/python scripts/fetch_news.py 
