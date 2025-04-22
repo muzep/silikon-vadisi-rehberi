@@ -1,9 +1,4 @@
-type Props = {
-  topic: string
-  slug: string
-}
-
-export default function EducationCard({ topic, slug }: Props) {
+export default function EducationCard({ topic, slug }) {
   return (
     <a 
       href={`/education/${slug}`}

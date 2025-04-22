@@ -2,19 +2,16 @@ import { supabase } from '../lib/supabase'
 import { useEffect, useState } from "react"
 import NewsCard from '../components/NewsCard'
 
-type News = {
-  title: string
-  summary: string
-  url: string
-}
-
 export default function NewsPage() {
-  const [news, setNews] = useState<News[]>([])
+  const [news, setNews] = useState([])
 
   useEffect(() => {
-    supabase.from("news").select("*").order("published_at", { ascending: false }).then(res => {
-      if (res.data) setNews(res.data)
-    })
+    supabase.from("news")
+      .select("*")
+      .order("published_at", { ascending: false })
+      .then(res => {
+        if (res.data) setNews(res.data)
+      })
   }, [])
 
   return (

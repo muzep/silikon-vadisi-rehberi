@@ -1,10 +1,4 @@
-type Props = {
-  title: string
-  summary: string
-  url: string
-}
-
-export default function NewsCard({ title, summary, url }: Props) {
+export default function NewsCard({ title, summary, url }) {
   return (
     <a 
       href={url}

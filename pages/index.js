@@ -3,20 +3,9 @@ import { useEffect, useState } from "react"
 import NewsCard from '../components/NewsCard'
 import EducationCard from '../components/EducationCard'
 
-type News = {
-  title: string
-  summary: string
-  url: string
-}
-
-type Education = {
-  topic: string
-  slug: string
-}
-
 export default function HomePage() {
-  const [news, setNews] = useState<News[]>([])
-  const [education, setEducation] = useState<Education[]>([])
+  const [news, setNews] = useState([])
+  const [education, setEducation] = useState([])
 
   useEffect(() => {
     // Son haberleri çek
