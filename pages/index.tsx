@@ -1,7 +1,7 @@
-import { supabase } from "@/lib/supabase"
+import { supabase } from '../lib/supabase'
 import { useEffect, useState } from "react"
-import NewsCard from "@/components/NewsCard"
-import EducationCard from "@/components/EducationCard"
+import NewsCard from '../components/NewsCard'
+import EducationCard from '../components/EducationCard'
 
 type News = {
   title: string
