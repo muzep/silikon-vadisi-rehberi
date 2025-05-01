@@ -1,157 +1,159 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { format } from 'date-fns';
-import { tr } from 'date-fns/locale';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+
+interface NewsItem {
+  title: string;
+  description: string;
+  url: string;
+  source: string;
+  publishedAt: string;
+}
+
+interface EducationItem {
+  id: string;
+  title: string;
+  description: string;
+  url: string;
+  category: string;
+}
 
 export default function Home() {
-  const [news, setNews] = useState([]);
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [education, setEducation] = useState<EducationItem[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchNews = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/news');
-        const data = await response.json();
-        setNews(data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Haberler yüklenirken hata oluştu:', error);
+        const [newsRes, educationRes] = await Promise.all([
+          fetch('/api/news'),
+          fetch('/api/education')
+        ]);
+
+        if (!newsRes.ok || !educationRes.ok) {
+          throw new Error('Veri yüklenirken bir hata oluştu');
+        }
+
+        const [newsData, educationData] = await Promise.all([
+          newsRes.json(),
+          educationRes.json()
+        ]);
+
+        setNews(newsData);
+        setEducation(educationData);
+      } catch (err) {
+        setError('Veriler yüklenirken bir hata oluştu');
+        console.error(err);
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchNews();
+    fetchData();
   }, []);
 
   const filteredNews = news.filter(item =>
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.description.toLowerCase().includes(searchQuery.toLowerCase())
+    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const filteredEducation = education.filter(item =>
+    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-red-500 text-xl">{error}</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex flex-col gap-8">
-          {/* Hero Section */}
-          <section className="text-center space-y-4">
-            <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
-              Silikon Vadisi Rehberi
-            </h1>
-            <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
-              Teknoloji dünyasının nabzını tutan en güncel haberler ve startup ekosistemi hakkında detaylı bilgiler
-            </p>
-            <div className="flex justify-center">
-              <Input
-                type="search"
-                placeholder="Haberlerde ara..."
-                className="max-w-sm"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </section>
+    <div className="container mx-auto px-4 py-8">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold mb-4">Silikon Vadisi Rehberi</h1>
+        <p className="text-gray-600">Teknoloji dünyasından en güncel haberler ve eğitim kaynakları</p>
+      </div>
 
-          {/* Main Content */}
-          <Tabs defaultValue="haberler" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="haberler">Haberler</TabsTrigger>
-              <TabsTrigger value="egitimler">Eğitimler</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="haberler" className="space-y-6">
-              {loading ? (
-                <div className="text-center">Yükleniyor...</div>
-              ) : (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {filteredNews.map((item) => (
-                    <Card key={item.id} className="overflow-hidden">
-                      {item.imageUrl && (
-                        <div className="aspect-video relative">
-                          <img
-                            src={item.imageUrl}
-                            alt={item.title}
-                            className="object-cover w-full h-full"
-                          />
-                        </div>
-                      )}
-                      <CardHeader>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="secondary">{item.category}</Badge>
-                          <span className="text-sm text-gray-500">
-                            {format(new Date(item.publishedAt), 'd MMMM yyyy', { locale: tr })}
-                          </span>
-                        </div>
-                        <CardTitle className="line-clamp-2">{item.title}</CardTitle>
-                        <CardDescription className="line-clamp-3">
-                          {item.description}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <Button variant="outline" className="w-full" asChild>
-                          <a href={item.url} target="_blank" rel="noopener noreferrer">
-                            Devamını Oku
-                          </a>
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
+      <div className="mb-8">
+        <Input
+          type="text"
+          placeholder="Haber veya eğitim ara..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="max-w-md mx-auto"
+        />
+      </div>
 
-            <TabsContent value="egitimler" className="space-y-6">
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Startup Nedir?</CardTitle>
-                    <CardDescription>
-                      Girişimcilik dünyasına giriş yapmak isteyenler için temel kavramlar
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button variant="outline" className="w-full" asChild>
-                      <a href="/egitimler/startup-nedir">Eğitime Git</a>
-                    </Button>
-                  </CardContent>
-                </Card>
+      <Tabs defaultValue="news" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-8">
+          <TabsTrigger value="news">Haberler</TabsTrigger>
+          <TabsTrigger value="education">Eğitim</TabsTrigger>
+        </TabsList>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Yatırım Alma Rehberi</CardTitle>
-                    <CardDescription>
-                      Startuplar için yatırım alma süreci ve stratejileri
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button variant="outline" className="w-full" asChild>
-                      <a href="/egitimler/yatirim-alma">Eğitime Git</a>
-                    </Button>
-                  </CardContent>
-                </Card>
+        <TabsContent value="news">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredNews.map((item, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="line-clamp-2">{item.title}</CardTitle>
+                  <CardDescription>
+                    <Badge variant="secondary" className="mr-2">{item.source}</Badge>
+                    {new Date(item.publishedAt).toLocaleDateString('tr-TR')}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 line-clamp-3 mb-4">{item.description}</p>
+                  <Button asChild className="w-full">
+                    <a href={item.url} target="_blank" rel="noopener noreferrer">
+                      Devamını Oku
+                    </a>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Yapay Zeka ve Girişimcilik</CardTitle>
-                    <CardDescription>
-                      AI teknolojilerini startup'ınızda nasıl kullanabilirsiniz?
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button variant="outline" className="w-full" asChild>
-                      <a href="/egitimler/yapay-zeka">Eğitime Git</a>
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </main>
+        <TabsContent value="education">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredEducation.map((item) => (
+              <Card key={item.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="line-clamp-2">{item.title}</CardTitle>
+                  <CardDescription>
+                    <Badge variant="secondary">{item.category}</Badge>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 line-clamp-3 mb-4">{item.description}</p>
+                  <Button asChild className="w-full">
+                    <a href={item.url} target="_blank" rel="noopener noreferrer">
+                      Kaynağa Git
+                    </a>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 } 
