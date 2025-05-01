@@ -1,12 +1,10 @@
+/** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
+  reactStrictMode: true,
+  swcMinify: true,
   images: {
-    unoptimized: true,
+    domains: ['newsapi.org'],
   },
-  webpack: (config) => {
-    config.resolve.fallback = { fs: false, path: false }
-    return config
-  }
 }
 
 module.exports = nextConfig
